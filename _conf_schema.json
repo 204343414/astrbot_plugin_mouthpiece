@@ -7,12 +7,12 @@
   "command_name": {
     "description": "举牌指令名",
     "type": "string",
-    "default": "安安说"
+    "default": "嘴替"
   },
   "command_alias": {
     "description": "举牌指令别名，逗号分隔，如: anan说,anansays",
     "type": "string",
-    "default": "anan说,anansays"
+    "default": ""
   },
   "base_image_url": {
     "description": "默认底图URL或本地路径(相对于插件目录)",
@@ -85,4 +85,5 @@
     "type": "text",
     "default": "生成角色举牌表情包。当你想用表情包强调语气、玩梗、吐槽、或表达强烈情绪时使用此工具。文字会出现在角色举着的牌子上。"
   }
+
 }
