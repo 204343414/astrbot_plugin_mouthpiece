@@ -225,7 +225,15 @@ class CustomSignPlugin(Star):
         logger.info("嘴替插件已卸载")
 
     # ── 内部绘图 ─────────────────────────────────────────
-
+    def _get_text_region(self) -> dict:
+        """获取文字区域配置"""
+        tr = self.config.get("text_region", {})
+        return {
+            "x": tr.get("x", 100),
+            "y": tr.get("y", 432),
+            "w": tr.get("w", 319),
+            "h": tr.get("h", 204),
+        }
     async def _generate_image(self, text: str, face: Optional[str] = None) -> bytes:
         """生成举牌图片 → PNG bytes"""
         base = self._faces.get(face, self._base_image) if face else self._base_image
