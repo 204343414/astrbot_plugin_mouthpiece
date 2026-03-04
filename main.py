@@ -92,7 +92,18 @@ class ImageCache:
         cached.write_bytes(data)
         logger.info(f"已缓存: {cached.name} ({len(data)} bytes)")
         return str(cached)
-
+    async def fetch_json(self, url: str) -> dict:
+        """下载并解析远程 JSON"""
+        logger.info(f"获取清单: {url}")
+        async with aiohttp.ClientSession() as session:
+            async with session.get(
+                url,
+                timeout=aiohttp.ClientTimeout(total=30),
+                headers={"User-Agent": "Mozilla/5.0"},
+            ) as resp:
+                if resp.status != 200:
+                    raise RuntimeError(f"获取清单失败 HTTP {resp.status}: {url}")
+                return await resp.json(content_type=None)
     def clear(self):
         for f in self.cache_dir.iterdir():
             if f.is_file():
@@ -162,58 +173,53 @@ class CustomSignPlugin(Star):
         await self._load_images()
 
         char_name = self.config.get("character_name", "角色")
-        logger.info(f"嘴替插件就绪 | 角色: {char_name} | 表情数: {len(self._faces)}")
+        base_url = self.config.get("asset_base_url", "未配置")
+        logger.info(f"嘴替插件就绪 | 角色: {char_name} | 表情数: {len(self._faces)} | 资源: {base_url}")
 
     async def _load_images(self):
-        """根据配置加载所有图片"""
+        """从远程 manifest.json 加载所有图片"""
         try:
-            self._base_image = await self.cache.get(
-                self.config.get("base_image_url", "assets/anan/base.png")
-            )
+            base_url = self.config.get("asset_base_url", "").rstrip("/")
+            if not base_url:
+                logger.warning("asset_base_url 未配置，跳过图片加载")
+                return
 
-            overlay_url = self.config.get("overlay_image_url", "")
-            if overlay_url:
-                self._overlay_image = await self.cache.get(overlay_url)
+            # 1. 获取清单
+            manifest = await self.cache.fetch_json(f"{base_url}/manifest.json")
+
+            # 2. 下载底图
+            base_file = manifest.get("base", "base.png")
+            self._base_image = await self.cache.get(f"{base_url}/{base_file}")
+
+            # 3. 下载遮罩（可选）
+            overlay_file = manifest.get("overlay", "")
+            if overlay_file:
+                self._overlay_image = await self.cache.get(f"{base_url}/{overlay_file}")
             else:
                 self._overlay_image = None
 
+            # 4. 字体（本地）
             self._font = str(PLUGIN_PATH / self.config.get(
                 "font_path", "assets/fonts/SourceHanSansSC-Bold.otf"
             ))
 
-            # 文字颜色
+            # 5. 文字颜色
             r = self.config.get("text_color_r", 0)
             g = self.config.get("text_color_g", 0)
             b = self.config.get("text_color_b", 0)
             self._text_color = (r, g, b, 255)
 
-            # 表情
-            faces_str = self.config.get("faces", "{}")
-            try:
-                faces_dict = json.loads(faces_str) if isinstance(faces_str, str) else faces_str
-            except json.JSONDecodeError:
-                logger.warning(f"faces 配置解析失败，使用空表情列表")
-                faces_dict = {}
-
+            # 6. 下载所有表情
             self._faces = {}
-            for name, source in faces_dict.items():
+            faces_dict = manifest.get("faces", {})
+            for name, rel_path in faces_dict.items():
                 try:
-                    self._faces[name] = await self.cache.get(source)
+                    self._faces[name] = await self.cache.get(f"{base_url}/{rel_path}")
                 except Exception as e:
                     logger.warning(f"加载表情 '{name}' 失败: {e}")
 
         except Exception as e:
-            logger.error(f"初始化图片失败: {e}")
-
-    def _get_text_region(self) -> dict:
-        """获取文字区域配置"""
-        tr = self.config.get("text_region", {})
-        return {
-            "x": tr.get("x", 100),
-            "y": tr.get("y", 432),
-            "w": tr.get("w", 319),
-            "h": tr.get("h", 204),
-        }
+            logger.error(f"从远程清单加载图片失败: {e}")
 
     async def terminate(self):
         logger.info("嘴替插件已卸载")
@@ -312,11 +318,16 @@ class CustomSignPlugin(Star):
 
     @filter.command("嘴替刷新")
     async def handle_refresh(self, event: AstrMessageEvent):
-        """清空图片缓存并重新下载"""
-        if self.cache:
-            self.cache.clear()
-        await self._load_images()
-        yield event.plain_result(f"✅ 已刷新，当前 {len(self._faces)} 个表情可用")
+        """清空缓存，重新从远程清单下载所有图片"""
+        try:
+            if self.cache:
+                self.cache.clear()
+            await self._load_images()
+            faces = ", ".join(self._faces.keys()) or "无"
+            yield event.plain_result(f"✅ 已刷新 | 表情: {faces}")
+        except Exception as e:
+            logger.error(f"刷新失败: {e}")
+            yield event.plain_result(f"❌ 刷新失败: {e}")
 
     @filter.command("嘴替帮助")
     async def handle_help(self, event: AstrMessageEvent):
