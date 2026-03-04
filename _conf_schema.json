@@ -1,0 +1,88 @@
+{
+  "character_name": {
+    "description": "角色名称，用于指令显示",
+    "type": "string",
+    "default": "安安"
+  },
+  "command_name": {
+    "description": "举牌指令名",
+    "type": "string",
+    "default": "安安说"
+  },
+  "command_alias": {
+    "description": "举牌指令别名，逗号分隔，如: anan说,anansays",
+    "type": "string",
+    "default": "anan说,anansays"
+  },
+  "base_image_url": {
+    "description": "默认底图URL或本地路径(相对于插件目录)",
+    "type": "string",
+    "default": "assets/anan/base.png"
+  },
+  "overlay_image_url": {
+    "description": "遮罩层URL或本地路径，留空则不使用遮罩",
+    "type": "string",
+    "default": "assets/anan/base_overlay.png"
+  },
+  "font_path": {
+    "description": "字体文件路径(相对于插件目录)",
+    "type": "string",
+    "default": "assets/fonts/SourceHanSansSC-Bold.otf"
+  },
+  "text_region": {
+    "description": "文字绘制区域配置",
+    "type": "object",
+    "items": {
+      "x": {
+        "description": "左上角X坐标",
+        "type": "int",
+        "default": 100
+      },
+      "y": {
+        "description": "左上角Y坐标",
+        "type": "int",
+        "default": 432
+      },
+      "w": {
+        "description": "区域宽度",
+        "type": "int",
+        "default": 319
+      },
+      "h": {
+        "description": "区域高度",
+        "type": "int",
+        "default": 204
+      }
+    }
+  },
+  "text_color_r": {
+    "description": "文字颜色R(0-255)",
+    "type": "int",
+    "default": 0
+  },
+  "text_color_g": {
+    "description": "文字颜色G(0-255)",
+    "type": "int",
+    "default": 0
+  },
+  "text_color_b": {
+    "description": "文字颜色B(0-255)",
+    "type": "int",
+    "default": 0
+  },
+  "faces": {
+    "description": "表情配置，JSON格式: {\"开心\":\"url或路径\", \"生气\":\"url或路径\"}",
+    "type": "text",
+    "default": "{\"害羞\":\"assets/anan/害羞.png\",\"生气\":\"assets/anan/生气.png\",\"病娇\":\"assets/anan/病娇.png\",\"无语\":\"assets/anan/无语.png\",\"开心\":\"assets/anan/开心.png\"}"
+  },
+  "ai_tool_enabled": {
+    "description": "是否启用AI工具（让LLM自动调用举牌表情包）",
+    "type": "bool",
+    "default": true
+  },
+  "ai_tool_description": {
+    "description": "AI工具描述（告诉LLM什么时候该用这个工具）",
+    "type": "text",
+    "default": "生成角色举牌表情包。当你想用表情包强调语气、玩梗、吐槽、或表达强烈情绪时使用此工具。文字会出现在角色举着的牌子上。"
+  }
+}
