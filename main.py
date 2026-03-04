@@ -34,16 +34,24 @@ class ImageCache:
         self.cache_dir = cache_dir
         self.cache_dir.mkdir(parents=True, exist_ok=True)
 
-    def _url_to_filename(self, url: str) -> str:
+    def _make_cache_name(self, url: str, real_url: str = "") -> str:
+        """根据 URL 生成缓存文件名，优先用重定向后的真实 URL 提取扩展名"""
         h = hashlib.md5(url.encode()).hexdigest()[:12]
-        # 从 URL 路径部分提取扩展名（忽略 query 参数）
-        from urllib.parse import urlparse
-        path = urlparse(url).path
-        ext = Path(path).suffix
-        # 如果扩展名不合法或过长，默认 .png
-        if not ext or len(ext) > 5 or not ext[1:].isalpha():
-            ext = ".png"
-        return f"{h}{ext}"
+        # 优先从真实URL取扩展名，其次从原始URL取
+        for u in (real_url, url):
+            if u:
+                ext = Path(urlparse(u).path).suffix
+                if ext and 1 < len(ext) <= 5 and ext[1:].isalpha():
+                    return f"{h}{ext}"
+        return f"{h}.png"
+
+    def _find_existing(self, url: str) -> Optional[Path]:
+        """查找已有缓存（不管扩展名）"""
+        h = hashlib.md5(url.encode()).hexdigest()[:12]
+        for f in self.cache_dir.iterdir():
+            if f.name.startswith(h):
+                return f
+        return None
 
     async def get(self, source: str) -> str:
         """URL或本地相对路径 → 可用的本地绝对路径"""
@@ -57,24 +65,32 @@ class ImageCache:
                 return str(local)
             raise FileNotFoundError(f"本地文件不存在: {local}")
 
-        # URL → 缓存
-        cached = self.cache_dir / self._url_to_filename(source)
-        if cached.exists():
-            return str(cached)
+        # 检查缓存
+        existing = self._find_existing(source)
+        if existing:
+            return str(existing)
 
+        # 下载（带 User-Agent + 跟随重定向）
         logger.info(f"下载图片: {source}")
         async with aiohttp.ClientSession() as session:
-            async with session.get(source, timeout=aiohttp.ClientTimeout(total=30)) as resp:
+            async with session.get(
+                source,
+                timeout=aiohttp.ClientTimeout(total=30),
+                allow_redirects=True,
+                headers={"User-Agent": "Mozilla/5.0"},
+            ) as resp:
                 if resp.status != 200:
                     raise RuntimeError(f"下载失败 HTTP {resp.status}: {source}")
                 data = await resp.read()
+                real_url = str(resp.url)
 
-        cached.write_bytes(data)
-        # 验证下载的文件确实是图片
         if len(data) < 8:
-            cached.unlink(missing_ok=True)
             raise RuntimeError(f"下载的文件过小，可能不是有效图片: {source}")
-        logger.info(f"已缓存: {cached.name}")
+
+        cache_name = self._make_cache_name(source, real_url)
+        cached = self.cache_dir / cache_name
+        cached.write_bytes(data)
+        logger.info(f"已缓存: {cached.name} ({len(data)} bytes)")
         return str(cached)
 
     def clear(self):
@@ -222,7 +238,7 @@ class CustomSignPlugin(Star):
 
     # ── 指令：举牌说话 ──────────────────────────────────
 
-    @filter.command("安安说", alias={"anan说", "anansays"})
+    @filter.command("嘴替")
     async def handle_sign_says(self, event: AstrMessageEvent):
         """让角色举牌说话
 
@@ -294,7 +310,7 @@ class CustomSignPlugin(Star):
 
     # ── 管理指令 ─────────────────────────────────────────
 
-    @filter.command("刷新表情缓存")
+    @filter.command("嘴替刷新")
     async def handle_refresh(self, event: AstrMessageEvent):
         """清空图片缓存并重新下载"""
         if self.cache:
@@ -302,7 +318,7 @@ class CustomSignPlugin(Star):
         await self._load_images()
         yield event.plain_result(f"✅ 已刷新，当前 {len(self._faces)} 个表情可用")
 
-    @filter.command("嘴替帮助", alias={"举牌帮助"})
+    @filter.command("嘴替帮助")
     async def handle_help(self, event: AstrMessageEvent):
         """显示帮助"""
         name = self.config.get("character_name", "角色")
