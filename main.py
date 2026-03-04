@@ -322,13 +322,12 @@ class CustomSignPlugin(Star):
     async def handle_help(self, event: AstrMessageEvent):
         """显示帮助"""
         name = self.config.get("character_name", "角色")
-        cmd = self.config.get("command_name", "安安说")
         faces = ", ".join(self._faces.keys()) or "无"
         yield event.plain_result(
             f"🎨 {name}嘴替插件\n\n"
-            f"📖 {cmd} [文本] [表情]\n"
+            f"📖 /嘴替 [文本] [表情]\n"
             f"   可用表情: {faces}\n"
             f"   文本中 \\n 可换行\n\n"
-            f"🔧 刷新表情缓存 - 更换图片后执行\n\n"
+            f"🔧 /嘴替刷新 - 更换图片后执行\n\n"
             f"🤖 AI会在合适时机自动举牌"
         )
