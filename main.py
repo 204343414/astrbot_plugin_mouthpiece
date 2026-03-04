@@ -6,6 +6,7 @@
 import json
 import asyncio
 import hashlib
+from urllib.parse import urlparse
 import tempfile
 from pathlib import Path
 from typing import Optional
@@ -35,7 +36,13 @@ class ImageCache:
 
     def _url_to_filename(self, url: str) -> str:
         h = hashlib.md5(url.encode()).hexdigest()[:12]
-        ext = Path(url).suffix or ".png"
+        # 从 URL 路径部分提取扩展名（忽略 query 参数）
+        from urllib.parse import urlparse
+        path = urlparse(url).path
+        ext = Path(path).suffix
+        # 如果扩展名不合法或过长，默认 .png
+        if not ext or len(ext) > 5 or not ext[1:].isalpha():
+            ext = ".png"
         return f"{h}{ext}"
 
     async def get(self, source: str) -> str:
@@ -63,6 +70,10 @@ class ImageCache:
                 data = await resp.read()
 
         cached.write_bytes(data)
+        # 验证下载的文件确实是图片
+        if len(data) < 8:
+            cached.unlink(missing_ok=True)
+            raise RuntimeError(f"下载的文件过小，可能不是有效图片: {source}")
         logger.info(f"已缓存: {cached.name}")
         return str(cached)
 
