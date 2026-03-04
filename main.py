@@ -129,7 +129,7 @@ class CustomSignPlugin(Star):
 
     async def initialize(self):
         """初始化：下载/缓存图片"""
-        data_dir = StarTools.get_data_dir()
+        data_dir = StarTools.get_data_dir("astrbot_plugin_mouthpiece")
         self.cache = ImageCache(data_dir / "image_cache")
 
         await self._load_images()
