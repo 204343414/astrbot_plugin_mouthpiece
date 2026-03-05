@@ -43,8 +43,18 @@
     "description": "是否启用AI自动举牌工具",
     "type": "bool",
     "default": true
-  }
+  },
+  "auto_enabled": {
+  "description": "是否启用概率嘴替（对 Bot 的普通回复生效）",
+  "type": "bool",
+  "default": false
+  },
+"auto_probability": {
+  "description": "嘴替触发概率（0-100）",
+  "type": "int",
+  "default": 10
 }
+
 
 
 
