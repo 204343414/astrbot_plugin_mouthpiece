@@ -198,14 +198,26 @@ class CustomSignPlugin(Star):
             else:
                 self._overlay_image = None
 
-            # 4. 字体（远程或本地）
-            font_file = manifest.get("font", "")
-            if font_file:
+            # 4) 字体：manifest 优先，其次回退到配置 font_path
+            font_file = (manifest.get("font") or "").strip()
+
+            if isinstance(font_file, str) and font_file.startswith(("http://", "https://")):
+                # manifest 里直接给了完整 URL
+                self._font = await self.cache.get(font_file)
+
+            elif font_file:
+                # manifest 里给的是相对路径（相对于 asset_base_url）
                 self._font = await self.cache.get(f"{base_url}/{font_file}")
+
             else:
-                self._font = str(PLUGIN_PATH / self.config.get(
-                    "font_path", "assets/fonts/SourceHanSansSC-Bold.otf"
-                ))
+                # manifest 没提供 font，则使用插件配置的 font_path（支持 URL 或本地相对路径）
+                font_cfg = self.config.get("font_path", "assets/fonts/SourceHanSansSC-Bold.otf")
+
+                if isinstance(font_cfg, str) and font_cfg.startswith(("http://", "https://")):
+                    self._font = await self.cache.get(font_cfg)
+                else:
+                    self._font = str(PLUGIN_PATH / font_cfg)
+            self._font = str(PLUGIN_PATH / font_cfg)
 
             # 5. 文字颜色
             r = self.config.get("text_color_r", 0)
