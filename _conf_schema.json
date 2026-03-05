@@ -12,7 +12,7 @@
   "font_path": {
     "description": "字体文件路径（相对于插件目录）",
     "type": "string",
-    "default": "assets/fonts/SourceHanSansSC-Bold.otf"
+    "default": "assets/fonts/5_Minecraft AE(支持中文).ttf"
   },
   "text_region": {
     "description": "文字绘制区域",
@@ -61,3 +61,4 @@
     "default": true
   }
 }
+
