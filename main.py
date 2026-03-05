@@ -266,7 +266,46 @@ class CustomSignPlugin(Star):
 
         except Exception as e:
             logger.error(f"从远程清单加载图片失败: {e}")
+    def _normalize_text(self, s: str) -> str:
+        # 顺手兼容全角空格、首尾空格
+        return (s or "").replace("\u3000", " ").strip()
 
+    def _get_config_face_src(self, face_name: str) -> str:
+        """从 WebUI 的 faces(template_list) 配置里，查指定表情名对应的 src；找不到返回空串"""
+        face_name = self._normalize_text(face_name)
+        faces_list = self.config.get("faces", []) or []
+        for item in faces_list:
+            name = self._normalize_text(item.get("name", ""))
+            src = self._normalize_text(item.get("src", ""))
+            if name == face_name and src:
+                return src
+        return ""
+    async def _ensure_face_loaded(self, face_name: str) -> bool:
+        """确保 face_name 在 self._faces 里可用；必要时按配置下载并缓存。"""
+        face_name = self._normalize_text(face_name)
+        if not face_name:
+            return False
+
+        # 已经加载过
+        if face_name in self._faces:
+            return True
+
+        # 从配置里找 src
+        src = self._get_config_face_src(face_name)
+        if not src:
+            return False
+
+        base_url = self._normalize_text(self.config.get("asset_base_url", "")).rstrip("/")
+        if not base_url and not src.startswith(("http://", "https://")):
+            return False
+
+        final = src if src.startswith(("http://", "https://")) else f"{base_url}/{src.lstrip('/')}"
+        try:
+            self._faces[face_name] = await self.cache.get(final)
+            return True
+        except Exception as e:
+            logger.warning(f"表情下载失败 '{face_name}': {e}")
+            return False
     async def terminate(self):
         logger.info("嘴替插件已卸载")
 
@@ -349,8 +388,9 @@ class CustomSignPlugin(Star):
         # 尝试从末尾提取表情
         last_space = content.rfind(" ")
         if last_space != -1:
-            potential_face = content[last_space + 1:].strip()
-            if potential_face in self._faces:
+            potential_face = self._normalize_text(content[last_space + 1:])
+            # 关键：即使还没预加载，也现场按配置下载
+            if await self._ensure_face_loaded(potential_face):
                 face = potential_face
                 content = content[:last_space]
 
