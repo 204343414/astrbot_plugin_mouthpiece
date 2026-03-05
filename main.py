@@ -234,6 +234,19 @@ class CustomSignPlugin(Star):
                     self._faces[name] = await self.cache.get(f"{base_url}/{rel_path}")
                 except Exception as e:
                     logger.warning(f"加载表情 '{name}' 失败: {e}")
+            # 7) 从 WebUI faces(+号) 加载表情（可覆盖 manifest 同名表情）
+            for name, src in self._iter_config_faces():
+                try:
+                    # 支持两种写法：
+                    # 1) src 是完整 URL
+                    # 2) src 是相对路径：自动拼到 asset_base_url 下
+                    if src.startswith(("http://", "https://")):
+                        final = src
+                    else:
+                        final = f"{base_url}/{src.lstrip('/')}"
+                    self._faces[name] = await self.cache.get(final)
+                except Exception as e:
+                    logger.warning(f"加载配置表情 '{name}' 失败: {e}")
 
         except Exception as e:
             logger.error(f"从远程清单加载图片失败: {e}")
