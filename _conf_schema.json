@@ -14,31 +14,15 @@
     "type": "string",
     "default": "5_Minecraft AE(支持中文).ttf"
   },
-  "text_region": {
-    "description": "文字绘制区域",
-    "type": "object",
-    "items": {
-      "x": {
-        "description": "左上角X",
-        "type": "int",
-        "default": 100
-      },
-      "y": {
-        "description": "左上角Y",
-        "type": "int",
-        "default": 432
-      },
-      "w": {
-        "description": "宽度",
-        "type": "int",
-        "default": 319
-      },
-      "h": {
-        "description": "高度",
-        "type": "int",
-        "default": 204
-      }
-    }
+    "text_left_top": {
+    "description": "文字区域左上角坐标，格式: x,y 例如 167,762",
+    "type": "string",
+    "default": "100,432"
+  },
+  "text_right_bottom": {
+    "description": "文字区域右下角坐标，格式: x,y 例如 500,900",
+    "type": "string",
+    "default": "419,636"
   },
   "text_color_r": {
     "description": "文字颜色R(0-255)",
@@ -61,6 +45,7 @@
     "default": true
   }
 }
+
 
 
 
