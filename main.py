@@ -373,61 +373,24 @@ class CustomSignPlugin(Star):
     # ── 概率嘴替 ─────────────────────────────────────────
     @filter.on_decorating_result()
     async def on_decorating_result(self, event: AstrMessageEvent):
-    # 1) 配置开关
-    if not self.config.get("auto_enabled", False):
+        # 配置开关
+        if not self.config.get("auto_enabled", False):
+            return
+
+        prob = int(self.config.get("auto_probability", 0))
+        prob = max(0, min(100, prob))
+
+        # 概率不触发就返回
+        import random
+        if prob == 0 or random.randint(1, 100) > prob:
+            return
+
+        result = event.get_result()
+        chain = result.chain
+
+        # 这里只做示例：先不改链路，避免误伤其他插件输出
+        # 你后面要加“把文字转嘴替图”可以再加
         return
-
-    prob = int(self.config.get("auto_probability", 0))
-    prob = max(0, min(100, prob))
-    if prob == 0 or random.randint(1, 100) > prob:
-        return
-
-    # 2) 只处理“纯文本回复”（避免把别的插件发的图片/复杂链路搞乱）
-    result = event.get_result()
-    chain = result.chain
-
-    # 找到 Plain 文本（简单粗暴：取所有 Plain 拼起来）
-    texts = []
-    for comp in chain:
-        if isinstance(comp, Plain):
-            t = (comp.text or "").strip()
-            if t:
-                texts.append(t)
-
-    if not texts:
-        return
-
-    text = "\n".join(texts)
-    # 可选：太长就不嘴替，避免图太挤
-    if len(text) > 200:
-        return
-
-    # 3) 生成图片（复用你现有的 _generate_image）
-    try:
-        image_bytes = await self._generate_image(text, face=None)
-    except Exception as e:
-        logger.error(f"概率嘴替生成失败: {e}")
-        return
-
-    # 4) 写临时文件并替换/追加到消息链
-    with tempfile.NamedTemporaryFile(delete=False, suffix=".png") as f:
-        f.write(image_bytes)
-        temp_path = f.name
-
-    # 选择一种呈现：
-    # 方案1：保留原文字 + 加图片（推荐，信息不丢）
-    chain.append(Image(temp_path))
-
-    # 方案2：只发图片（更“梗”，但用户看不到原文字）
-    # chain.clear()
-    # chain.append(Image(temp_path))
-
-    # 5) 异步清理临时文件（不阻塞发送）
-    async def _cleanup(p: str):
-        await asyncio.sleep(15)
-        Path(p).unlink(missing_ok=True)
-
-    asyncio.create_task(_cleanup(temp_path))
     # ── 管理指令 ─────────────────────────────────────────
 
     @filter.command("嘴替刷新")
