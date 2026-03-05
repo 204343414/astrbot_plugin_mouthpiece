@@ -17,12 +17,12 @@
     "text_left_top": {
     "description": "文字区域左上角坐标，格式: x,y 例如 167,762",
     "type": "string",
-    "default": "100,432"
+    "default": "161,755"
   },
   "text_right_bottom": {
     "description": "文字区域右下角坐标，格式: x,y 例如 500,900",
     "type": "string",
-    "default": "419,636"
+    "default": "743,1112"
   },
   "text_color_r": {
     "description": "文字颜色R(0-255)",
@@ -45,6 +45,7 @@
     "default": true
   }
 }
+
 
 
 
