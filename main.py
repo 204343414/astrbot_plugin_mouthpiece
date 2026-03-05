@@ -176,7 +176,13 @@ class CustomSignPlugin(Star):
         char_name = self.config.get("character_name", "角色")
         base_url = self.config.get("asset_base_url", "未配置")
         logger.info(f"嘴替插件就绪 | 角色: {char_name} | 表情数: {len(self._faces)} | 资源: {base_url}")
-
+    def _iter_config_faces(self):
+        faces_list = self.config.get("faces", []) or []
+        for item in faces_list:
+            name = (item.get("name") or "").strip()
+            src = (item.get("src") or "").strip()
+            if name and src:
+                yield name, src
     async def _load_images(self):
         """从远程 manifest.json 加载所有图片"""
         try:
@@ -228,6 +234,16 @@ class CustomSignPlugin(Star):
 
             # 6. 下载所有表情
             self._faces = {}
+                        # 从 WebUI 的 faces(template_list) 追加/覆盖表情（同名会覆盖）
+            for name, src in self._iter_config_faces():
+                try:
+                    if src.startswith(("http://", "https://")):
+                        final = src
+                    else:
+                        final = f"{base_url}/{src.lstrip('/')}"
+                    self._faces[name] = await self.cache.get(final)
+                except Exception as e:
+                    logger.warning(f"加载配置表情 '{name}' 失败: {e}")
             faces_dict = manifest.get("faces", {})
             for name, rel_path in faces_dict.items():
                 try:
