@@ -229,9 +229,41 @@ class CustomSignPlugin(Star):
         logger.info("嘴替插件已卸载")
 
     # ── 内部绘图 ─────────────────────────────────────────
+    def _parse_xy(self, s: str) -> tuple[int, int]:
+        # 支持 "167,762" / "167 762" / "167，762"
+        s = (s or "").strip().replace("，", ",")
+        if "," in s:
+            a, b = s.split(",", 1)
+        else:
+            parts = s.split()
+            if len(parts) != 2:
+                raise ValueError(f"坐标格式错误: {s}（需要 x,y 或 'x y'）")
+            a, b = parts[0], parts[1]
+        return int(a.strip()), int(b.strip())
+
     def _get_text_region(self) -> dict:
-        """获取文字区域配置"""
-        tr = self.config.get("text_region", {})
+        """
+        返回 drawer 需要的 {x,y,w,h}
+        优先读 text_left_top / text_right_bottom（幼儿园模式）
+        """
+        lt = self.config.get("text_left_top", "")
+        rb = self.config.get("text_right_bottom", "")
+
+        if lt and rb:
+            x1, y1 = self._parse_xy(lt)
+            x2, y2 = self._parse_xy(rb)
+            # 自动做纠错：防止用户点反了
+            x_left, x_right = (x1, x2) if x1 <= x2 else (x2, x1)
+            y_top, y_bottom = (y1, y2) if y1 <= y2 else (y2, y1)
+            return {
+                "x": x_left,
+                "y": y_top,
+                "w": max(1, x_right - x_left),
+                "h": max(1, y_bottom - y_top),
+            }
+
+        # 兼容旧的 object 写法（x,y,w,h）
+        tr = self.config.get("text_region", {}) or {}
         return {
             "x": tr.get("x", 100),
             "y": tr.get("y", 432),
