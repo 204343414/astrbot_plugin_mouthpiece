@@ -1,7 +1,8 @@
 {
   "base": "logo.png",
-  "overlay": "",
+  "overlay": "mask.png",
   "faces": {},
   "font": "5_Minecraft AE(支持中文).ttf"
 }
+
 
