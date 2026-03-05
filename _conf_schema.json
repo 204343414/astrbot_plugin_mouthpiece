@@ -2,17 +2,17 @@
   "character_name": {
     "description": "角色名称，用于帮助信息显示",
     "type": "string",
-    "default": "小叶子"
+    "default": "头条flag"
   },
   "asset_base_url": {
     "description": "图片仓库的raw基地址，如 https://raw.githubusercontent.com/用户/仓库/main",
     "type": "string",
-    "default": "https://raw.githubusercontent.com/204343414/mouthpiece-assets/main"
+    "default": "https://github.com/204343414/astrbot_plugin_mouthpiece/blob/master/logo.png?raw=true"
   },
   "font_path": {
     "description": "字体文件路径（相对于插件目录）",
     "type": "string",
-    "default": "assets/fonts/5_Minecraft AE(支持中文).ttf"
+    "default": "5_Minecraft AE(支持中文).ttf"
   },
   "text_region": {
     "description": "文字绘制区域",
@@ -61,4 +61,5 @@
     "default": true
   }
 }
+
 
