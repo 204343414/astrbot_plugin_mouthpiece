@@ -2,7 +2,5 @@
   "base": "logo.png",
   "overlay": "mask.png",
   "faces": {},
-  "font": "5_Minecraft AE(支持中文).ttf"
+  "font": "https://raw.githubusercontent.com/lxgw/LxgwWenKai/main/fonts/TTF/LXGWWenKai-Regular.ttf"
 }
-
-
