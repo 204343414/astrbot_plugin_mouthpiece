@@ -54,29 +54,22 @@
   "type": "int",
   "default": 10
   },
-    "faces": {
-    "type": "template_list",
-    "description": "表情列表（WebUI 可点 + 添加）",
-    "templates": {
-      "face": {
-        "name": "表情",
-        "hint": "添加一个表情：名字 + 图片URL/相对路径",
-        "items": {
-          "name": {
-            "description": "表情名（聊天里用：/嘴替 文案 表情名）",
-            "type": "string",
-            "default": ""
-          },
-          "src": {
-            "description": "图片地址（raw直链URL 或 相对 asset_base_url 的路径，如 faces/微笑.png）",
-            "type": "string",
-            "default": ""
-          }
-        }
+"faces": {
+  "type": "template_list",
+  "description": "表情列表（点 + 添加）",
+  "templates": {
+    "face": {
+      "name": "表情",
+      "hint": "添加一个表情：名字 + 图片路径/URL",
+      "items": {
+        "name": { "type": "string", "description": "表情名", "default": "" },
+        "src":  { "type": "string", "description": "图片URL或相对路径", "default": "" }
       }
     }
   }
 }
+}
+
 
 
 
