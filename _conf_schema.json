@@ -12,7 +12,7 @@
   "font_path": {
     "description": "字体文件路径（相对于插件目录）",
     "type": "string",
-    "default": "5_Minecraft AE(支持中文).ttf"
+    "default": "https://raw.githubusercontent.com/lxgw/LxgwWenKai/main/fonts/TTF/LXGWWenKai-Regular.ttf"
   },
     "text_left_top": {
     "description": "文字区域左上角坐标，格式: x,y 例如 167,762",
@@ -45,6 +45,7 @@
     "default": true
   }
 }
+
 
 
 
