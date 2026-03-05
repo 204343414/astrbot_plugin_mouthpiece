@@ -488,3 +488,14 @@ class CustomSignPlugin(Star):
             f"🔧 /嘴替刷新 - 更换图片后执行\n\n"
             f"🤖 AI会在合适时机自动举牌"
         )
+    @filter.command("嘴替表情")
+    async def handle_faces_list(self, event: AstrMessageEvent):
+        cfg_faces = []
+        for item in (self.config.get("faces", []) or []):
+            cfg_faces.append(f"{item.get('name')} => {item.get('src')}")
+        loaded = ", ".join(self._faces.keys()) or "无"
+        yield event.plain_result(
+            "\n"
+            + ("\n".join(cfg_faces) if cfg_faces else "无\n")
+            + f"\n\n{loaded}"
+        )
