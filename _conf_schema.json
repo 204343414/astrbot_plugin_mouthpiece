@@ -7,7 +7,7 @@
   "asset_base_url": {
     "description": "图片仓库的raw基地址，如 https://raw.githubusercontent.com/用户/仓库/main",
     "type": "string",
-    "default": "https://github.com/204343414/astrbot_plugin_mouthpiece/blob/master/logo.png?raw=true"
+    "default": "https://raw.githubusercontent.com/204343414/astrbot_plugin_mouthpiece/master"
   },
   "font_path": {
     "description": "字体文件路径（相对于插件目录）",
@@ -61,5 +61,6 @@
     "default": true
   }
 }
+
 
 
